@@ -1,7 +1,7 @@
 import 'package:chat_app/theme.dart';
 import 'package:flutter/material.dart';
 
-Widget customButton(Size size, String text) {
+Widget customButton(Size size, String text, Function method) {
   return Container(
     alignment: Alignment.center,
     width: size.width,
@@ -15,7 +15,7 @@ Widget customButton(Size size, String text) {
           fixedSize: Size.fromWidth(size.width),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-      onPressed: () {},
+      onPressed: method(),
       child: Text(
         text,
         style: semibold14.copyWith(fontSize: 20, color: Colors.white),

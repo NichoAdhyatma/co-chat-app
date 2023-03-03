@@ -1,5 +1,6 @@
+import 'package:chat_app/controller/auth_controller.dart';
+import 'package:chat_app/pages/home_screen.dart';
 import 'package:chat_app/theme.dart';
-import 'package:chat_app/widget/button.dart';
 import 'package:chat_app/widget/field.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,12 @@ class CreateAccount extends StatefulWidget {
 }
 
 class _CreateAccountState extends State<CreateAccount> {
+  final TextEditingController _name = TextEditingController();
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -61,40 +68,37 @@ class _CreateAccountState extends State<CreateAccount> {
                     SizedBox(
                       height: size.height / 25,
                     ),
-                    SizedBox(
-                      width: size.width,
-                      child: field(
-                        size,
-                        "Name",
-                        "Fill your name here",
-                        true,
-                        false,
-                      ),
-                    ),
-                    SizedBox(
-                      height: size.height / 40,
-                    ),
-                    SizedBox(
-                      width: size.width,
-                      child: field(
-                        size,
-                        "Email",
-                        "Fill your email here",
-                        true,
-                        false,
-                      ),
-                    ),
-                    SizedBox(
-                      height: size.height / 40,
-                    ),
-                    SizedBox(
-                      width: size.width,
-                      child: field(
-                        size,
-                        "Password",
-                        "Fill your Password here",
-                        false,
-                        true,
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            width: size.width,
+                            child: field(size, "Name", "Fill your name here",
+                                true, false, _name),
+                          ),
+                          SizedBox(
+                            height: size.height / 40,
+                          ),
+                          SizedBox(
+                            width: size.width,
+                            child: field(size, "Email", "Fill your email here",
+                                true, false, _email),
+                          ),
+                          SizedBox(
+                            height: size.height / 40,
+                          ),
+                          SizedBox(
+                            width: size.width,
+                            child: field(
+                                size,
+                                "Password",
+                                "Fill your Password here",
+                                false,
+                                true,
+                                _password),
+                          ),
+                        ],
                       ),
                     ),
                     SizedBox(
@@ -102,7 +106,52 @@ class _CreateAccountState extends State<CreateAccount> {
                     ),
                     Container(
                       alignment: Alignment.center,
-                      child: customButton(size, "Sign up"),
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Container(
+                          alignment: Alignment.center,
+                          width: size.width,
+                          height: size.height / 14,
+                          decoration: BoxDecoration(
+                            color: green2,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                                fixedSize: Size.fromWidth(size.width),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15))),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() {
+                                  isLoading = true;
+                                });
+
+                                createAccount(
+                                        _name.text, _email.text, _password.text)
+                                    .then((user) {
+                                  if (user != null) {
+                                    Navigator.of(context)
+                                        .pushNamed(HomeScreen.routeName);
+                                  }
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+                                });
+                              }
+                            },
+                            child: isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : Text(
+                                    "Sign in",
+                                    style: semibold14.copyWith(
+                                        fontSize: 20, color: Colors.white),
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
                     const SizedBox(
                       height: 20,

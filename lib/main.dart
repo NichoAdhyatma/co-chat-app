@@ -1,11 +1,13 @@
+import 'package:chat_app/middleware/authenticared.dart';
 import 'package:chat_app/pages/create_account.dart';
+import 'package:chat_app/pages/home_screen.dart';
 import 'package:chat_app/pages/login_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -16,10 +18,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
+      home: Auth(),
       routes: {
         LoginScreen.routeName: (context) => const LoginScreen(),
         CreateAccount.routeName: (context) => const CreateAccount(),
+        HomeScreen.routeName: (context) => const HomeScreen(),
       },
     );
   }
