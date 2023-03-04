@@ -132,7 +132,7 @@ class _CreateAccountState extends State<CreateAccount> {
                                     .then((user) {
                                   if (user != null) {
                                     Navigator.of(context)
-                                        .pushNamed(HomeScreen.routeName);
+                                        .pushReplacementNamed(HomeScreen.routeName);
                                   }
                                   setState(() {
                                     isLoading = false;
