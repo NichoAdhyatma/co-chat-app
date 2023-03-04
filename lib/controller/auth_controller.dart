@@ -10,7 +10,7 @@ Future<User?> createAccount(String name, String email, String password) async {
             email: email, password: password))
         .user;
     if (user != null) {
-      print("login success");
+      user.updateDisplayName(name);
 
       await fireStore.collection("users").doc(auth.currentUser?.uid).set(
         {

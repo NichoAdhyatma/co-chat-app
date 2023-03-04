@@ -1,4 +1,5 @@
 import 'package:chat_app/middleware/authenticared.dart';
+import 'package:chat_app/pages/chat_room.dart';
 import 'package:chat_app/pages/create_account.dart';
 import 'package:chat_app/pages/home_screen.dart';
 import 'package:chat_app/pages/login_screen.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         LoginScreen.routeName: (context) => const LoginScreen(),
         CreateAccount.routeName: (context) => const CreateAccount(),
         HomeScreen.routeName: (context) => const HomeScreen(),
+        ChatRoom.routeName: (context) => ChatRoom(),
       },
     );
   }

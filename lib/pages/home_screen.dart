@@ -1,3 +1,4 @@
+import 'package:chat_app/pages/chat_room.dart';
 import 'package:chat_app/pages/login_screen.dart';
 import 'package:chat_app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,28 +14,87 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool isLoading = false;
+  bool isLoading = true;
   final TextEditingController user = TextEditingController();
   final FirebaseAuth auth = FirebaseAuth.instance;
   Map<String, dynamic> result = {};
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
   String input = "";
+  bool isInit = true;
+
+  @override
+  void didChangeDependencies() async {
+    if (isInit) {
+      await firestore
+          .collection("users")
+          .orderBy('email')
+          .where(
+            'email',
+            isNotEqualTo: auth.currentUser?.email,
+          )
+          .get()
+          .then((value) {
+        setState(() {
+          if (value.docs.isNotEmpty) {
+            result.clear();
+            for (var e in value.docs) {
+              result[e.id] = e.data();
+            }
+          } else {
+            result.clear();
+          }
+        });
+      });
+    }
+    if (isLoading) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+    isInit = false;
+    super.didChangeDependencies();
+  }
+
+  String chatRoomId(String? user1, String user2) {
+    if (user1![0].toLowerCase().codeUnits[0] >
+        user2.toLowerCase().codeUnits[0]) {
+      return "$user1$user2";
+    } else {
+      return "$user2$user1";
+    }
+  }
 
   void onSearch() async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
     await firestore
         .collection("users")
-        .where("name", isEqualTo: user.text)
+        .where(
+          'email',
+          isNotEqualTo: auth.currentUser?.email,
+        )
+        .orderBy('email')
+        .orderBy('name')
+        .startAt([user.text])
+        .endAt(['${user.text}\uf8ff'])
         .get()
-        .then((value) {
-      setState(() {
-        if (value.docs.isNotEmpty) {
-          result = value.docs[0].data();
-        } else {
-          result.clear();
-        }
-      });
-    });
+        .then(
+          (value) {
+            setState(() {
+              result.clear();
+              if (value.docs.isNotEmpty) {
+                for (var e in value.docs) {
+                  result[e.id] = e.data();
+                }
+              } else {
+                result.clear();
+              }
+            });
+          },
+        )
+        .whenComplete(() {
+          setState(() {
+            isLoading = false;
+          });
+        });
   }
 
   @override
@@ -85,15 +145,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   enableSuggestions: false,
                   controller: user,
                   onChanged: (value) => setState(() {
+                    result.clear();
+                    isLoading = true;
                     input = value;
                     onSearch();
                   }),
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      onPressed: () => user.clear(),
-                      icon: const Icon(Icons.close),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: dark2,
                     ),
+                    suffixIcon: user.text.isNotEmpty
+                        ? IconButton(
+                            onPressed: () {
+                              user.clear();
+                              setState(() {
+                                input = "";
+                                isInit = true;
+                                result.clear();
+                                didChangeDependencies();
+                              });
+                            },
+                            icon: Icon(
+                              Icons.close,
+                              color: dark2,
+                            ),
+                          )
+                        : null,
                     iconColor: green1,
                     labelText: "Search user",
                     labelStyle: regular14.copyWith(
@@ -136,29 +214,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               SizedBox(
-                height: size.height / 20,
+                height: size.height / 30,
               ),
-              result.isNotEmpty
-                  ? ListTile(
-                      leading: const CircleAvatar(),
-                      title: Text(
-                        result["name"],
-                        style: regular14,
-                      ),
-                      trailing: Container(
-                        alignment: Alignment.center,
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: green2,
-                          borderRadius: BorderRadius.circular(50),
+              if (isLoading)
+                Center(
+                  child: CircularProgressIndicator(
+                    color: green1,
+                  ),
+                ),
+              ...result.values.map(
+                (e) => ListTile(
+                  onTap: () {
+                    Navigator.of(context).pushNamed(
+                      ChatRoom.routeName,
+                      arguments: [
+                        chatRoomId(
+                          auth.currentUser?.displayName,
+                          e["name"],
                         ),
-                      ),
-                    )
-                  : Text(
-                      "No result",
-                      style: regular14.copyWith(color: dark3),
+                        e,
+                      ],
+                    );
+                  },
+                  leading: const CircleAvatar(),
+                  title: Text(
+                    e["name"],
+                    style: regular14,
+                  ),
+                  subtitle: Text(
+                    "Start new chat",
+                    style: regular12_5,
+                  ),
+                  trailing: Container(
+                    alignment: Alignment.center,
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: green2,
+                      borderRadius: BorderRadius.circular(50),
                     ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

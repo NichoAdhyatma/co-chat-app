@@ -1,5 +1,6 @@
 import 'package:chat_app/controller/auth_controller.dart';
 import 'package:chat_app/pages/home_screen.dart';
+import 'package:chat_app/pages/login_screen.dart';
 import 'package:chat_app/theme.dart';
 import 'package:chat_app/widget/field.dart';
 import 'package:flutter/material.dart';
@@ -168,7 +169,7 @@ class _CreateAccountState extends State<CreateAccount> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.of(context).pop();
+                            Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
                           },
                           child: Text(
                             "Sign in",
