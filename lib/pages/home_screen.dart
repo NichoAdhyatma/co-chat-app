@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: bold18.copyWith(color: dark1),
                       ),
                       Text(
-                        "${auth.currentUser!.email}",
+                        "${auth.currentUser!.displayName}",
                         style: semibold14.copyWith(color: green1),
                       ),
                     ],
@@ -225,6 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ...result.values.map(
                 (e) => ListTile(
                   onTap: () {
+                    print(auth.currentUser?.displayName);
                     Navigator.of(context).pushNamed(
                       ChatRoom.routeName,
                       arguments: [

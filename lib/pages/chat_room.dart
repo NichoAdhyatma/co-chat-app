@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:chat_app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,14 +22,13 @@ class ChatRoom extends StatelessWidget {
     };
 
     if (message.text.isNotEmpty) {
+      message.clear();
       await firestore
           .collection('chatroom')
           .doc(roomId)
           .collection('chats')
           .add(messages);
     }
-
-    message.clear();
   }
 
   @override
@@ -99,7 +96,7 @@ class ChatRoom extends StatelessWidget {
                       itemBuilder: (context, index) {
                         return messageWidget(
                             size,
-                            snapshot.data!.docs[0].data()
+                            snapshot.data!.docs[index].data()
                                 as Map<String, dynamic>);
                       },
                     );
@@ -108,39 +105,56 @@ class ChatRoom extends StatelessWidget {
                   }
                 },
               ),
-            )
-          ],
-        ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 10.0, left: 8, right: 8),
-        child: SizedBox(
-          width: size.width,
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: message,
-                  decoration: InputDecoration(
-                    hintText: "Type your message here",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10.0, left: 8, right: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: message,
+                      decoration: InputDecoration(
+                        hintText: "Type your message here",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  IconButton(
+                    onPressed: onSendMessage,
+                    icon: const Icon(Icons.send),
+                  ),
+                ],
               ),
-              IconButton(
-                onPressed: onSendMessage,
-                icon: const Icon(Icons.send),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-Widget messageWidget(size, Map<String, dynamic> map) {
-  return Container();
+Widget messageWidget(Size size, Map<String, dynamic> map) {
+  final FirebaseAuth auth = FirebaseAuth.instance;
+  return Container(
+    width: size.width,
+    alignment: map["sendby"] == auth.currentUser?.displayName
+        ? Alignment.centerRight
+        : Alignment.centerLeft,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: map["sendby"] == auth.currentUser?.displayName ? green1 : green2,
+      ),
+      child: Text(
+        map["message"],
+        style: regular12_5.copyWith(
+          color: Colors.white,
+        ),
+      ),
+    ),
+  );
 }
