@@ -4,6 +4,7 @@ import 'package:chat_app/pages/home_screen.dart';
 import 'package:chat_app/theme.dart';
 import 'package:chat_app/widget/field.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -125,15 +126,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                 isLoading = true;
                               });
 
-                              logIn(_email.text, _password.text).then((user) {
-                                if (user != null) {
-                                  Navigator.of(context)
-                                      .pushNamed(HomeScreen.routeName);
-                                }
-                                setState(() {
-                                  isLoading = false;
-                                });
-                              });
+                              logIn(_email.text, _password.text).then(
+                                (user) {
+                                  if (user != null) {
+                                    Navigator.of(context)
+                                        .pushReplacementNamed(HomeScreen.routeName);
+                                  }
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+                                },
+                              ).catchError(
+                                (err) {
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+                                  Fluttertoast.showToast(
+                                      msg: "${err.code}",
+                                      toastLength: Toast.LENGTH_LONG,
+                                      gravity: ToastGravity.BOTTOM,
+                                      timeInSecForIosWeb: 2,
+                                      backgroundColor: red,
+                                      textColor: Colors.white,
+                                      fontSize: 16.0);
+                                },
+                              );
                             }
                           },
                           child: isLoading

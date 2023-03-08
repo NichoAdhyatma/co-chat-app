@@ -4,6 +4,7 @@ import 'package:chat_app/pages/login_screen.dart';
 import 'package:chat_app/theme.dart';
 import 'package:chat_app/widget/field.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CreateAccount extends StatefulWidget {
   const CreateAccount({super.key});
@@ -130,15 +131,34 @@ class _CreateAccountState extends State<CreateAccount> {
 
                                 createAccount(
                                         _name.text, _email.text, _password.text)
-                                    .then((user) {
-                                  if (user != null) {
-                                    Navigator.of(context)
-                                        .pushReplacementNamed(HomeScreen.routeName);
-                                  }
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                });
+                                    .then(
+                                  (user) {
+                                    if (user != null) {
+                                      Navigator.of(context)
+                                          .pushReplacementNamed(
+                                              HomeScreen.routeName);
+                                    }
+                                    setState(
+                                      () {
+                                        isLoading = false;
+                                      },
+                                    );
+                                  },
+                                ).catchError(
+                                  (err) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                    Fluttertoast.showToast(
+                                        msg: "${err.code}",
+                                        toastLength: Toast.LENGTH_LONG,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 2,
+                                        backgroundColor: red,
+                                        textColor: Colors.white,
+                                        fontSize: 16.0);
+                                  },
+                                );
                               }
                             },
                             child: isLoading
@@ -169,7 +189,8 @@ class _CreateAccountState extends State<CreateAccount> {
                         ),
                         GestureDetector(
                           onTap: () {
-                            Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
+                            Navigator.of(context)
+                                .pushReplacementNamed(LoginScreen.routeName);
                           },
                           child: Text(
                             "Sign in",

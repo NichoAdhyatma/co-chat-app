@@ -58,18 +58,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             isNotEqualTo: auth.currentUser?.email,
           )
           .get()
-          .then((value) {
-        setState(() {
-          if (value.docs.isNotEmpty) {
-            result.clear();
-            for (var e in value.docs) {
-              result[e.id] = e.data();
-            }
-          } else {
-            result.clear();
-          }
-        });
-      });
+          .then(
+        (value) {
+          setState(
+            () {
+              if (value.docs.isNotEmpty) {
+                result.clear();
+                for (var e in value.docs) {
+                  result[e.id] = e.data();
+                }
+              } else {
+                result.clear();
+              }
+            },
+          );
+        },
+      );
     }
     if (isLoading) {
       setState(() {
