@@ -1,3 +1,4 @@
+import 'package:chat_app/controller/auth_controller.dart';
 import 'package:chat_app/pages/chat_room.dart';
 import 'package:chat_app/pages/login_screen.dart';
 import 'package:chat_app/theme.dart';
@@ -13,14 +14,38 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  String input = "";
+  bool isInit = true;
   bool isLoading = true;
   final TextEditingController user = TextEditingController();
   final FirebaseAuth auth = FirebaseAuth.instance;
   Map<String, dynamic> result = {};
   FirebaseFirestore firestore = FirebaseFirestore.instance;
-  String input = "";
-  bool isInit = true;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    changeStatus("online");
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      changeStatus("online");
+    } else {
+      changeStatus("offline");
+    }
+    super.didChangeAppLifecycleState(state);
+  }
+
+  void changeStatus(String status) async {
+    await firestore
+        .collection("users")
+        .doc(auth.currentUser!.uid)
+        .update({"status": status});
+  }
 
   @override
   void didChangeDependencies() async {
@@ -56,8 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String chatRoomId(String? user1, String user2) {
-    if (user1![0].toLowerCase().codeUnits[0] >
-        user2.toLowerCase().codeUnits[0]) {
+    if (user1!.toLowerCase().codeUnits[0] > user2.toLowerCase().codeUnits[0]) {
       return "$user1$user2";
     } else {
       return "$user2$user1";
@@ -128,8 +152,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      Navigator.of(context)
-                          .pushReplacementNamed(LoginScreen.routeName);
+                      logout().whenComplete(
+                        () => Navigator.of(context)
+                            .pushReplacementNamed(LoginScreen.routeName),
+                      );
                     },
                     icon: const Icon(Icons.logout),
                   ),
@@ -225,7 +251,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ...result.values.map(
                 (e) => ListTile(
                   onTap: () {
-                    print(auth.currentUser?.displayName);
                     Navigator.of(context).pushNamed(
                       ChatRoom.routeName,
                       arguments: [

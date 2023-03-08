@@ -10,7 +10,6 @@ Future<User?> createAccount(String name, String email, String password) async {
             email: email, password: password))
         .user;
     if (user != null) {
-
       user.updateDisplayName(name);
 
       await fireStore.collection("users").doc(auth.currentUser?.uid).set(
@@ -18,6 +17,7 @@ Future<User?> createAccount(String name, String email, String password) async {
           "name": name,
           "email": email,
           "status": "Unavailable",
+          "uid": auth.currentUser!.uid,
         },
       ).onError((error, stackTrace) => print(error));
     } else {
@@ -50,9 +50,15 @@ Future<User?> logIn(String email, String password) async {
 
 Future<void> logout() async {
   FirebaseAuth auth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
-    await auth.signOut();
+    await firestore
+        .collection("users")
+        .doc(auth.currentUser!.uid)
+        .update({"status": "offline"}).then(
+      (value) => auth.signOut(),
+    );
   } catch (err) {
     rethrow;
   }

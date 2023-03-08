@@ -37,6 +37,7 @@ class ChatRoom extends StatelessWidget {
     roomId = arg[0];
     user = arg[1];
     final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -69,12 +70,27 @@ class ChatRoom extends StatelessWidget {
                         user["name"],
                         style: regular14,
                       ),
-                      Text(
-                        "online",
-                        style: regular12_5.copyWith(color: green2),
+                      StreamBuilder(
+                        stream: firestore
+                            .collection("users")
+                            .doc(user["uid"])
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.data != null) {
+                            return Text(
+                              snapshot.data!["status"],
+                              style: regular12_5.copyWith(color: green2),
+                            );
+                          } else {
+                            return Text(
+                              "Unvailable",
+                              style: regular12_5,
+                            );
+                          }
+                        },
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -113,12 +129,14 @@ class ChatRoom extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: message,
+                      textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         hintText: "Type your message here",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
+                      onSubmitted: (_) => onSendMessage(),
                     ),
                   ),
                   IconButton(
