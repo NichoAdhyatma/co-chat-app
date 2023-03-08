@@ -1,7 +1,12 @@
+import 'dart:io';
+
 import 'package:chat_app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 // ignore: must_be_immutable
 class ChatRoom extends StatelessWidget {
@@ -13,6 +18,31 @@ class ChatRoom extends StatelessWidget {
 
   ChatRoom({super.key});
   String roomId = "";
+
+  File? imageFile;
+
+  Future getImage() async {
+    ImagePicker picker = ImagePicker();
+
+    await picker.pickImage(source: ImageSource.gallery).then(
+      (xFile) {
+        if (xFile != null) {
+          imageFile = File(xFile.path);
+          print(imageFile);
+          uploadImage();
+        }
+      },
+    );
+  }
+
+  Future uploadImage() async {
+    String fileName = const Uuid().v1();
+    var ref =
+        FirebaseStorage.instance.ref().child("images").child("$fileName.jpg");
+    var uploadTask = await ref.putFile(imageFile!);
+    // String imageUrl = uploadTask.ref.getDownloadURL() as String;
+    // print(imageUrl);
+  }
 
   void onSendMessage() async {
     Map<String, dynamic> messages = {
@@ -131,6 +161,29 @@ class ChatRoom extends StatelessWidget {
                       controller: message,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 2,
+                            color: green1,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1.0,
+                            color: green2,
+                            style: BorderStyle.solid,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        focusColor: green1,
+                        suffixIcon: IconButton(
+                          onPressed: () => getImage(),
+                          icon: Icon(
+                            Icons.photo_outlined,
+                            color: dark2,
+                          ),
+                        ),
                         hintText: "Type your message here",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
