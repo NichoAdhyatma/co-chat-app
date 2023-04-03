@@ -17,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String input = "";
   bool isInit = true;
+  bool isStream = true;
   bool isLoading = true;
   final TextEditingController user = TextEditingController();
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -171,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               SizedBox(
                 width: size.width,
                 child: TextField(
+                  autofocus: false,
                   autocorrect: false,
                   enableSuggestions: false,
                   controller: user,
@@ -242,9 +244,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         text: input, style: semibold14.copyWith(color: green1)),
                   ],
                 ),
-              ),
-              SizedBox(
-                height: size.height / 30,
               ),
               if (isLoading)
                 Center(

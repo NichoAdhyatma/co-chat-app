@@ -1,8 +1,5 @@
-import 'package:chat_app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 Future<User?> createAccount(String name, String email, String password) async {
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -22,14 +19,11 @@ Future<User?> createAccount(String name, String email, String password) async {
           "status": "Unavailable",
           "uid": auth.currentUser!.uid,
         },
-      ).onError((error, stackTrace) => print(error));
-    } else {
-      print("login fail");
+      );
     }
     return user;
-  } on FirebaseAuthException catch (e) {
-    print('Failed with error code: ${e.code}');
-    print(e.message);
+  } on FirebaseAuthException {
+    rethrow;
   }
 }
 
@@ -41,13 +35,8 @@ Future<User?> logIn(String email, String password) async {
             email: email, password: password))
         .user;
 
-    if (user != null) {
-      print("login success");
-    } else {
-      print("login fail");
-    }
     return user;
-  } on FirebaseAuthException catch (e) {
+  } on FirebaseAuthException {
     rethrow;
   }
 }

@@ -3,7 +3,6 @@ import 'package:chat_app/pages/chat_room.dart';
 import 'package:chat_app/pages/create_account.dart';
 import 'package:chat_app/pages/home_screen.dart';
 import 'package:chat_app/pages/login_screen.dart';
-import 'package:chat_app/theme.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -19,16 +18,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: green1,
-      ),
+      debugShowCheckedModeBanner: false, 
       home: Auth(),
       routes: {
         LoginScreen.routeName: (context) => const LoginScreen(),
         CreateAccount.routeName: (context) => const CreateAccount(),
         HomeScreen.routeName: (context) => const HomeScreen(),
         ChatRoom.routeName: (context) => ChatRoom(),
+        
       },
     );
   }

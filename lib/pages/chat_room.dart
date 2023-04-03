@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:chat_app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +15,7 @@ class ChatRoom extends StatelessWidget {
   final TextEditingController message = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
+  final FocusNode focusNode = FocusNode();
   Map<String, dynamic> user = {};
 
   ChatRoom({super.key});
@@ -28,7 +30,6 @@ class ChatRoom extends StatelessWidget {
       (xFile) {
         if (xFile != null) {
           imageFile = File(xFile.path);
-          print(imageFile);
           uploadImage();
         }
       },
@@ -51,6 +52,8 @@ class ChatRoom extends StatelessWidget {
       "time": FieldValue.serverTimestamp(),
     };
 
+    focusNode.unfocus();
+
     if (message.text.isNotEmpty) {
       message.clear();
       await firestore
@@ -69,87 +72,95 @@ class ChatRoom extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: SingleChildScrollView(
+      appBar: AppBar(
+        leadingWidth: 100,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        titleTextStyle: const TextStyle(color: Colors.black),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.black,
+                ),
+              ),
+              Expanded(
+                child: CircleAvatar(
+                  child:
+                      Image.asset("images/Multiavatar-4e696ba9b0ce5043bc.png"),
+                ),
+              ),
+            ],
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              user["name"],
+              style: regular14,
+            ),
+            StreamBuilder(
+              stream:
+                  firestore.collection("users").doc(user["uid"]).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.data != null) {
+                  return Text(
+                    snapshot.data!["status"],
+                    style: regular12_5.copyWith(color: green2),
+                  );
+                } else {
+                  return Text(
+                    "Unvailable",
+                    style: regular12_5,
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      body: SafeArea(
         child: Column(
           children: [
-            Container(
-              height: size.height / 20,
-            ),
-            SizedBox(
-              height: size.height / 20,
-              width: size.width,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Flexible(
+              child: ListView(
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    icon: const Icon(Icons.arrow_back),
-                  ),
-                  CircleAvatar(
-                    backgroundColor: green1,
-                  ),
-                  const SizedBox(
-                    width: 12,
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user["name"],
-                        style: regular14,
-                      ),
-                      StreamBuilder(
-                        stream: firestore
-                            .collection("users")
-                            .doc(user["uid"])
-                            .snapshots(),
-                        builder: (context, snapshot) {
-                          if (snapshot.data != null) {
-                            return Text(
-                              snapshot.data!["status"],
-                              style: regular12_5.copyWith(color: green2),
-                            );
-                          } else {
-                            return Text(
-                              "Unvailable",
-                              style: regular12_5,
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                  SizedBox(
+                    height: size.height / 1.25,
+                    width: size.width,
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream: firestore
+                          .collection('chatroom')
+                          .doc(roomId)
+                          .collection('chats')
+                          .orderBy('time', descending: false)
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.data != null) {
+                          return ListView.builder(
+                            itemCount: snapshot.data!.docs.length,
+                            itemBuilder: (context, index) {
+                              return messageWidget(
+                                  size,
+                                  snapshot.data!.docs[index].data()
+                                      as Map<String, dynamic>);
+                            },
+                          );
+                        } else {
+                          return Container();
+                        }
+                      },
+                    ),
                   ),
                 ],
-              ),
-            ),
-            SizedBox(
-              height: size.height / 1.25,
-              width: size.width,
-              child: StreamBuilder<QuerySnapshot>(
-                stream: firestore
-                    .collection('chatroom')
-                    .doc(roomId)
-                    .collection('chats')
-                    .orderBy('time', descending: false)
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.data != null) {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        return messageWidget(
-                            size,
-                            snapshot.data!.docs[index].data()
-                                as Map<String, dynamic>);
-                      },
-                    );
-                  } else {
-                    return Container();
-                  }
-                },
               ),
             ),
             Padding(
@@ -158,6 +169,7 @@ class ChatRoom extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TextField(
+                      focusNode: focusNode,
                       controller: message,
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(

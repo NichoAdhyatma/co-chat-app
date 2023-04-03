@@ -18,6 +18,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final FocusNode focusNode1 = FocusNode();
+  final FocusNode focusNode2 = FocusNode();
+
   bool isLoading = false;
 
   @override
@@ -76,13 +79,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           SizedBox(
                             width: size.width,
-                            child: field(
-                              size,
-                              "Email",
-                              "Fill your email here",
-                              true,
-                              false,
-                              _email,
+                            child: FieldText(
+                              obscure: false,
+                              autofocus: false,
+                              controller: _email,
+                              label: "Email",
+                              hintText: "Fill your email here",
+                              focusNode: focusNode1,
                             ),
                           ),
                           SizedBox(
@@ -90,13 +93,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           SizedBox(
                             width: size.width,
-                            child: field(
-                              size,
-                              "Password",
-                              "Fill your Password here",
-                              false,
-                              true,
-                              _password,
+                            child: FieldText(
+                              obscure: true,
+                              autofocus: false,
+                              controller: _password,
+                              label: "Password",
+                              hintText: "Fill your password here",
+                              focusNode: focusNode2,
                             ),
                           ),
                         ],
@@ -105,65 +108,63 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: size.height / 30,
                     ),
-                    Container(
-                      alignment: Alignment.center,
-                      child: Container(
-                        alignment: Alignment.center,
-                        width: size.width,
-                        height: size.height / 14,
-                        decoration: BoxDecoration(
-                          color: green2,
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.all(16.0),
+                        backgroundColor: green1,
+                        fixedSize: Size.fromWidth(size.width),
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                              fixedSize: Size.fromWidth(size.width),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(15))),
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              setState(() {
-                                isLoading = true;
-                              });
-
-                              logIn(_email.text, _password.text).then(
-                                (user) {
-                                  if (user != null) {
-                                    Navigator.of(context)
-                                        .pushReplacementNamed(HomeScreen.routeName);
-                                  }
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                },
-                              ).catchError(
-                                (err) {
-                                  setState(() {
-                                    isLoading = false;
-                                  });
-                                  Fluttertoast.showToast(
-                                      msg: "${err.code}",
-                                      toastLength: Toast.LENGTH_LONG,
-                                      gravity: ToastGravity.BOTTOM,
-                                      timeInSecForIosWeb: 2,
-                                      backgroundColor: red,
-                                      textColor: Colors.white,
-                                      fontSize: 16.0);
-                                },
-                              );
-                            }
-                          },
-                          child: isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white,
-                                )
-                              : Text(
-                                  "Sign in",
-                                  style: semibold14.copyWith(
-                                      fontSize: 20, color: Colors.white),
-                                ),
-                        ),
                       ),
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          setState(() {
+                            isLoading = true;
+                          });
+
+                          focusNode1.hasFocus
+                              ? focusNode1.unfocus()
+                              : focusNode2.hasFocus
+                                  ? focusNode2.unfocus()
+                                  : null;
+
+                          logIn(_email.text, _password.text).then(
+                            (user) {
+                              if (user != null) {
+                                Navigator.of(context)
+                                    .pushReplacementNamed(HomeScreen.routeName);
+                              }
+                              setState(() {
+                                isLoading = false;
+                              });
+                            },
+                          ).catchError(
+                            (err) {
+                              setState(() {
+                                isLoading = false;
+                              });
+                              Fluttertoast.showToast(
+                                  msg: "${err.code}",
+                                  toastLength: Toast.LENGTH_LONG,
+                                  gravity: ToastGravity.BOTTOM,
+                                  timeInSecForIosWeb: 2,
+                                  backgroundColor: red,
+                                  textColor: Colors.white,
+                                  fontSize: 16.0);
+                            },
+                          );
+                        }
+                      },
+                      child: isLoading
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                          : Text(
+                              "Sign in",
+                              style: semibold14.copyWith(
+                                  fontSize: 20, color: Colors.white),
+                            ),
                     ),
                     const SizedBox(
                       height: 20,
