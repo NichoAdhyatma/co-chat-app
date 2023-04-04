@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:chat_app/constant/avatar.dart';
 import 'package:chat_app/controller/auth_controller.dart';
 import 'package:chat_app/pages/chat_room.dart';
 import 'package:chat_app/pages/login_screen.dart';
@@ -265,7 +268,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ],
                     );
                   },
-                  leading: const CircleAvatar(),
+                  leading: CircleAvatar(
+                    child: Image.network(avatar[0]),
+                  ),
                   title: Text(
                     e["name"],
                     style: regular14,

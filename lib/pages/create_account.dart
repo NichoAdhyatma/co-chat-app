@@ -1,6 +1,7 @@
 import 'package:chat_app/controller/auth_controller.dart';
 import 'package:chat_app/pages/home_screen.dart';
 import 'package:chat_app/pages/login_screen.dart';
+import 'package:chat_app/pages/select_avatar.dart';
 import 'package:chat_app/theme.dart';
 import 'package:chat_app/widget/field.dart';
 import 'package:flutter/material.dart';
@@ -143,14 +144,12 @@ class _CreateAccountState extends State<CreateAccount> {
                                       ? focusNode2.unfocus()
                                       : null;
 
-                          createAccount(
-                                  _name.text, _email.text, _password.text)
+                          createAccount(_name.text, _email.text, _password.text)
                               .then(
                             (user) {
                               if (user != null) {
-                                Navigator.of(context)
-                                    .pushReplacementNamed(
-                                        HomeScreen.routeName);
+                                Navigator.of(context).pushReplacementNamed(
+                                    SelectAvatar.routeName);
                               }
                               setState(
                                 () {

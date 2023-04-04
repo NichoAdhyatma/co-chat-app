@@ -1,55 +1,76 @@
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:chat_app/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
-// ignore: must_be_immutable
-class ChatRoom extends StatelessWidget {
+class ChatRoom extends StatefulWidget {
   static const routeName = '/chat';
+
+  const ChatRoom({super.key});
+
+  @override
+  State<ChatRoom> createState() => _ChatRoomState();
+}
+
+class _ChatRoomState extends State<ChatRoom> {
   final TextEditingController message = TextEditingController();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseAuth auth = FirebaseAuth.instance;
   final FocusNode focusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+
   Map<String, dynamic> user = {};
 
-  ChatRoom({super.key});
   String roomId = "";
 
   File? imageFile;
 
-  Future getImage() async {
-    ImagePicker picker = ImagePicker();
+  final stt.SpeechToText _speech = stt.SpeechToText();
 
-    await picker.pickImage(source: ImageSource.gallery).then(
-      (xFile) {
-        if (xFile != null) {
-          imageFile = File(xFile.path);
-          uploadImage();
-        }
-      },
-    );
+  bool _isListening = false;
+
+  void _listen() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (status) => print("on status : $status"),
+        onError: (errorNotification) {
+          print("on error : $errorNotification");
+        },
+      );
+
+      if (available) {
+        setState(() {
+          _isListening = true;
+        });
+
+        await _speech.listen(
+          onResult: (result) {
+            setState(() {
+              message.text = result.recognizedWords;
+              _isListening = false;
+            });
+          },
+        );
+      }
+    } else {
+      setState(() {
+        print("stop");
+        _isListening = false;
+      });
+      _speech.stop();
+    }
   }
 
-  Future uploadImage() async {
-    String fileName = const Uuid().v1();
-    var ref =
-        FirebaseStorage.instance.ref().child("images").child("$fileName.jpg");
-    var uploadTask = await ref.putFile(imageFile!);
-    // String imageUrl = uploadTask.ref.getDownloadURL() as String;
-    // print(imageUrl);
-  }
-
+  // Future getImage() async {
   void onSendMessage() async {
     Map<String, dynamic> messages = {
       "sendby": auth.currentUser?.displayName,
       "message": message.text,
-      "time": FieldValue.serverTimestamp(),
+      "time": DateTime.now().toString(),
     };
 
     focusNode.unfocus();
@@ -61,6 +82,8 @@ class ChatRoom extends StatelessWidget {
           .doc(roomId)
           .collection('chats')
           .add(messages);
+      _scrollController.animateTo(_scrollController.position.maxScrollExtent,
+          duration: Duration(seconds: 1), curve: Curves.easeIn);
     }
   }
 
@@ -130,41 +153,35 @@ class ChatRoom extends StatelessWidget {
         child: Column(
           children: [
             Flexible(
-              child: ListView(
-                children: [
-                  SizedBox(
-                    height: size.height / 1.25,
-                    width: size.width,
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: firestore
-                          .collection('chatroom')
-                          .doc(roomId)
-                          .collection('chats')
-                          .orderBy('time', descending: false)
-                          .snapshots(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<QuerySnapshot> snapshot) {
-                        if (snapshot.data != null) {
-                          return ListView.builder(
-                            itemCount: snapshot.data!.docs.length,
-                            itemBuilder: (context, index) {
-                              return messageWidget(
-                                  size,
-                                  snapshot.data!.docs[index].data()
-                                      as Map<String, dynamic>);
-                            },
-                          );
-                        } else {
-                          return Container();
-                        }
+              child: StreamBuilder<QuerySnapshot>(
+                stream: firestore
+                    .collection('chatroom')
+                    .doc(roomId)
+                    .collection('chats')
+                    .orderBy('time', descending: false)
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.data != null) {
+                    return ListView.builder(
+                      controller: _scrollController,
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        return messageWidget(
+                            size,
+                            snapshot.data!.docs[index].data()
+                                as Map<String, dynamic>);
                       },
-                    ),
-                  ),
-                ],
+                    );
+                  } else {
+                    return Container();
+                  }
+                },
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(bottom: 10.0, left: 8, right: 8),
+              padding: const EdgeInsets.only(
+                  bottom: 10.0, left: 8, right: 8, top: 10),
               child: Row(
                 children: [
                   Expanded(
@@ -190,9 +207,14 @@ class ChatRoom extends StatelessWidget {
                         ),
                         focusColor: green1,
                         suffixIcon: IconButton(
-                          onPressed: () => getImage(),
+                          style: IconButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(width: 1, color: green1),
+                            ),
+                          ),
+                          onPressed: () => _listen(),
                           icon: Icon(
-                            Icons.photo_outlined,
+                            _isListening ? Icons.mic_off : Icons.mic,
                             color: dark2,
                           ),
                         ),
@@ -220,6 +242,9 @@ class ChatRoom extends StatelessWidget {
 
 Widget messageWidget(Size size, Map<String, dynamic> map) {
   final FirebaseAuth auth = FirebaseAuth.instance;
+
+  String date = DateFormat.Hm().format(DateTime.parse(map['time']));
+
   return Container(
     width: size.width,
     alignment: map["sendby"] == auth.currentUser?.displayName
@@ -232,11 +257,26 @@ Widget messageWidget(Size size, Map<String, dynamic> map) {
         borderRadius: BorderRadius.circular(15),
         color: map["sendby"] == auth.currentUser?.displayName ? green1 : green2,
       ),
-      child: Text(
-        map["message"],
-        style: regular12_5.copyWith(
-          color: Colors.white,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 8.0),
+            child: Text(
+              map["message"],
+              style: regular14.copyWith(
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          Text(
+            date,
+            style: regular12_5.copyWith(color: Colors.grey[400], fontSize: 10),
+          ),
+        ],
       ),
     ),
   );

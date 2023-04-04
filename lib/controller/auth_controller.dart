@@ -56,3 +56,13 @@ Future<void> logout() async {
     rethrow;
   }
 }
+
+Future<void> updateProfile(String photoUrl) async {
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  try {
+    await auth.currentUser!.updatePhotoURL(photoUrl);
+  } on FirebaseAuthException {
+    rethrow;
+  }
+}
