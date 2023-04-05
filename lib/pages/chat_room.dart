@@ -81,9 +81,13 @@ class _ChatRoomState extends State<ChatRoom> {
           .collection('chatroom')
           .doc(roomId)
           .collection('chats')
-          .add(messages);
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-          duration: Duration(seconds: 1), curve: Curves.easeIn);
+          .add(messages)
+          .then(
+            (_) => _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(seconds: 1),
+                curve: Curves.easeIn),
+          );
     }
   }
 
@@ -115,8 +119,7 @@ class _ChatRoomState extends State<ChatRoom> {
               ),
               Expanded(
                 child: CircleAvatar(
-                  child:
-                      Image.asset("images/Multiavatar-4e696ba9b0ce5043bc.png"),
+                  backgroundImage: NetworkImage(user["photoUrl"]),
                 ),
               ),
             ],
@@ -245,39 +248,45 @@ Widget messageWidget(Size size, Map<String, dynamic> map) {
 
   String date = DateFormat.Hm().format(DateTime.parse(map['time']));
 
-  return Container(
-    width: size.width,
-    alignment: map["sendby"] == auth.currentUser?.displayName
-        ? Alignment.centerRight
-        : Alignment.centerLeft,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: map["sendby"] == auth.currentUser?.displayName ? green1 : green2,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(bottom: 8.0),
-            child: Text(
-              map["message"],
-              style: regular14.copyWith(
-                color: Colors.white,
-              ),
+  return Row(
+      mainAxisAlignment: map["sendby"] == auth.currentUser?.displayName
+          ? MainAxisAlignment.end
+          : MainAxisAlignment.start,
+      children: [
+        Flexible(
+          child: Container(
+            
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: map["sendby"] == auth.currentUser?.displayName
+                  ? green1
+                  : green2,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    map["message"],
+                    
+                    style: regular14.copyWith(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  date,
+                  style:
+                      regular12_5.copyWith(color: Colors.grey[400], fontSize: 10),
+                ),
+              ],
             ),
           ),
-          const SizedBox(
-            width: 10,
-          ),
-          Text(
-            date,
-            style: regular12_5.copyWith(color: Colors.grey[400], fontSize: 10),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      ]);
 }

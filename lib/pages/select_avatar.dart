@@ -15,6 +15,7 @@ class SelectAvatar extends StatefulWidget {
 
 class _SelectAvatarState extends State<SelectAvatar> {
   int isSelected = 0;
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,7 +124,10 @@ class _SelectAvatarState extends State<SelectAvatar> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 )),
-            onPressed: () async {
+            onPressed: isLoading ? null : () async {
+              setState(() {
+                isLoading = true;
+              });
               await updateProfile(avatar[isSelected])
                   .then(
                 (_) => Navigator.of(context)

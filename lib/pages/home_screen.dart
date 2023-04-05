@@ -145,16 +145,39 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Welcome",
-                        style: bold18.copyWith(color: dark1),
-                      ),
-                      Text(
-                        "${auth.currentUser!.displayName}",
-                        style: semibold14.copyWith(color: green1),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: Colors.grey,
+                            backgroundImage: NetworkImage(
+                              "${auth.currentUser!.photoURL}",
+                            ),
+                            radius: 30,
+                          ),
+                          const SizedBox(
+                            width: 16,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Welcome",
+                                style: bold16.copyWith(color: dark1),
+                              ),
+                              Text(
+                                "${auth.currentUser!.displayName}",
+                                style: semibold14.copyWith(
+                                    color: green1, fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -269,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     );
                   },
                   leading: CircleAvatar(
-                    child: Image.network(avatar[0]),
+                    child: Image.network(e["photoUrl"]),
                   ),
                   title: Text(
                     e["name"],

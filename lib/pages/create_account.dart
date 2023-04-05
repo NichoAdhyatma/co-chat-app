@@ -130,7 +130,8 @@ class _CreateAccountState extends State<CreateAccount> {
                           fixedSize: Size.fromWidth(size.width),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15))),
-                      onPressed: () {
+                      onPressed: isLoading ? null : () {
+
                         if (_formKey.currentState!.validate()) {
                           setState(() {
                             isLoading = true;

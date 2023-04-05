@@ -17,6 +17,7 @@ Future<User?> createAccount(String name, String email, String password) async {
           "name": name,
           "email": email,
           "status": "Unavailable",
+          "photoUrl": "https://api.multiavatar.com/6.png",
           "uid": auth.currentUser!.uid,
         },
       );
@@ -59,9 +60,14 @@ Future<void> logout() async {
 
 Future<void> updateProfile(String photoUrl) async {
   FirebaseAuth auth = FirebaseAuth.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
     await auth.currentUser!.updatePhotoURL(photoUrl);
+    await firestore
+        .collection("users")
+        .doc(auth.currentUser!.uid)
+        .update({"photoUrl": photoUrl});
   } on FirebaseAuthException {
     rethrow;
   }

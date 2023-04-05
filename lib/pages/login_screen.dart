@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: () {
+                      onPressed: isLoading ? null : () {
                         if (_formKey.currentState!.validate()) {
                           setState(() {
                             isLoading = true;
